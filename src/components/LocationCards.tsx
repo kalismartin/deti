@@ -9,7 +9,10 @@ import {
   startSharing,
   stopSharing,
 } from '@/lib/location';
+import { LocationMap } from '@/components/LocationMap';
 import type { Member } from '@/lib/types';
+
+const MAP_COLORS = ['#2563eb', '#db2777', '#16a34a', '#d97706', '#7c3aed'];
 
 function timeAgoCs(ms: number): string {
   const min = Math.round((Date.now() - ms) / 60000);
@@ -80,13 +83,30 @@ export function KidsLocationCard({ members }: { members: Member[] }) {
   const kidsWithLocation = members.filter((m) => m.role === 'child' && m.location);
   if (!isAdult || kidsWithLocation.length === 0) return null;
 
+  const points = kidsWithLocation.map((m, i) => ({
+    id: m.uid,
+    name: m.name,
+    lat: m.location!.lat,
+    lng: m.location!.lng,
+    accuracy: m.location!.accuracy,
+    updatedAt: m.location!.updatedAt,
+    color: MAP_COLORS[i % MAP_COLORS.length],
+  }));
+
   return (
     <section className="rounded-2xl bg-white p-4 shadow-sm">
       <h2 className="font-bold">📍 Kde jsou děti</h2>
+      <div className="mt-3 overflow-hidden rounded-xl">
+        <LocationMap points={points} />
+      </div>
       <ul className="mt-2 space-y-1.5">
-        {kidsWithLocation.map((m) => (
+        {kidsWithLocation.map((m, i) => (
           <li key={m.uid} className="flex items-center justify-between gap-2 text-sm">
-            <span>
+            <span className="flex items-center gap-2">
+              <span
+                className="h-2.5 w-2.5 rounded-full"
+                style={{ background: MAP_COLORS[i % MAP_COLORS.length] }}
+              />
               <span className="font-medium">{m.name}</span>{' '}
               <span className="text-slate-400">
                 {timeAgoCs(m.location!.updatedAt)} (±{m.location!.accuracy} m)
@@ -98,7 +118,7 @@ export function KidsLocationCard({ members }: { members: Member[] }) {
               rel="noreferrer"
               className="shrink-0 text-brand underline"
             >
-              mapa
+              navigovat
             </a>
           </li>
         ))}

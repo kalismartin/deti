@@ -66,7 +66,8 @@ Ostatní účty se připojují přes pozvánku; testovací odkaz:
 5. Děti si aplikaci přidají na plochu a na kartě „📍 Moje poloha“ zapnou sdílení
    polohy — aktualizuje se, jen když mají aplikaci otevřenou (webová aplikace
    neumí sledovat polohu na pozadí; to by vyžadovalo nativní aplikaci). Tlačítko
-   „Jsem tady!“ pošle polohu okamžitě. Rodiče polohu vidí na hlavní stránce.
+   „Jsem tady!“ pošle polohu okamžitě. Rodiče vidí polohu dětí na mapě přímo
+   na hlavní stránce (OpenStreetMap, bez API klíče).
 
 ## Upozornění (Cloud Functions)
 

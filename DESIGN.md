@@ -51,8 +51,9 @@ shared between parents and grandparents.
   any adult, visible to all.
 - **Location sharing (child accounts)**: kids install the PWA on their phones and share
   their location — automatically while the app is open (throttled to ~2 min / 100 m) plus
-  a manual "Jsem tady!" check-in button. Adults see each kid's last known position with a
-  map link on the Today dashboard. Visible to family members only. PWA limitation: no
+  a manual "Jsem tady!" check-in button. Adults see each kid's last known position on an
+  embedded map (Leaflet + OpenStreetMap, no API key) with accuracy circles and a
+  navigate link on the Today dashboard. Visible to family members only. PWA limitation: no
   background tracking when the app is closed — that would require a native app (possible
   later on top of the TWA/APK path).
 
