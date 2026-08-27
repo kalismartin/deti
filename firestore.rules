@@ -1,0 +1,96 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Owner e-mails allowed to bootstrap themselves as admin (first sign-in).
+    function isOwnerEmail() {
+      return request.auth.token.email in ['kalis.martin@gmail.com'];
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isMember() {
+      return isSignedIn()
+        && exists(/databases/$(database)/documents/members/$(request.auth.uid));
+    }
+
+    function myRole() {
+      return get(/databases/$(database)/documents/members/$(request.auth.uid)).data.role;
+    }
+
+    function isAdmin() {
+      return isMember() && myRole() == 'admin';
+    }
+
+    function isAdult() {
+      return isMember() && myRole() in ['admin', 'adult'];
+    }
+
+    match /members/{memberId} {
+      // own doc is always readable (needed before role assignment)
+      allow get: if isSignedIn() && request.auth.uid == memberId;
+      allow read: if isMember();
+
+      // owner bootstrap: become the first admin
+      allow create: if isSignedIn()
+        && request.auth.uid == memberId
+        && request.resource.data.role == 'admin'
+        && isOwnerEmail();
+
+      // join via invite link: unassigned role + valid active invite token
+      allow create: if isSignedIn()
+        && request.auth.uid == memberId
+        && request.resource.data.role == 'unassigned'
+        && request.resource.data.inviteToken is string
+        && exists(/databases/$(database)/documents/invites/$(request.resource.data.inviteToken))
+        && get(/databases/$(database)/documents/invites/$(request.resource.data.inviteToken)).data.active == true;
+
+      // members may update their own profile/notification tokens, never their role
+      allow update: if isSignedIn()
+        && request.auth.uid == memberId
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['fcmTokens', 'name', 'photoURL']);
+
+      allow update, delete: if isAdmin();
+    }
+
+    match /invites/{token} {
+      allow read, write: if isAdmin();
+    }
+
+    // family data: readable by every member, editable by admins
+    match /kids/{id} {
+      allow read: if isMember();
+      allow write: if isAdmin();
+    }
+    match /events/{id} {
+      allow read: if isMember();
+      allow write: if isAdmin();
+    }
+    match /holidays/{id} {
+      allow read: if isMember();
+      allow write: if isAdmin();
+    }
+    match /exceptions/{id} {
+      allow read: if isMember();
+      allow write: if isAdmin();
+    }
+    match /settings/{id} {
+      allow read: if isMember();
+      allow write: if isAdmin();
+    }
+
+    // pickup days: adults claim/confirm/note; children read-only
+    match /days/{dayId} {
+      allow read: if isMember();
+      allow create, update: if isAdult()
+        && request.resource.data.kidId is string
+        && request.resource.data.date is string
+        && dayId == request.resource.data.kidId + '_' + request.resource.data.date;
+      allow delete: if isAdmin();
+    }
+  }
+}
