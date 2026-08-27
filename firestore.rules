@@ -48,11 +48,12 @@ service cloud.firestore {
         && exists(/databases/$(database)/documents/invites/$(request.resource.data.inviteToken))
         && get(/databases/$(database)/documents/invites/$(request.resource.data.inviteToken)).data.active == true;
 
-      // members may update their own profile/notification tokens, never their role
+      // members may update their own profile, notification tokens and shared
+      // location — never their role
       allow update: if isSignedIn()
         && request.auth.uid == memberId
         && request.resource.data.diff(resource.data).affectedKeys()
-             .hasOnly(['fcmTokens', 'name', 'photoURL']);
+             .hasOnly(['fcmTokens', 'name', 'photoURL', 'location']);
 
       allow update, delete: if isAdmin();
     }

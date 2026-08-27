@@ -49,6 +49,12 @@ shared between parents and grandparents.
   Holidays and weekends = rest days: no pickup, no claims, no alerts; events still display.
 - **Day notes**: one optional free-text note per kid per day ("vzít plavky"), editable by
   any adult, visible to all.
+- **Location sharing (child accounts)**: kids install the PWA on their phones and share
+  their location — automatically while the app is open (throttled to ~2 min / 100 m) plus
+  a manual "Jsem tady!" check-in button. Adults see each kid's last known position with a
+  map link on the Today dashboard. Visible to family members only. PWA limitation: no
+  background tracking when the app is closed — that would require a native app (possible
+  later on top of the TWA/APK path).
 
 ## Pickup Workflow (core feature)
 

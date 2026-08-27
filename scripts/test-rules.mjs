@@ -208,6 +208,16 @@ await expectDenied('child cannot claim', () =>
     { merge: true },
   ),
 );
+await expectAllowed('child shares own location', () =>
+  updateDoc(doc(db, 'members', grandmaUid), {
+    location: { lat: 50.08, lng: 14.43, accuracy: 20, updatedAt: Date.now() },
+  }),
+);
+await expectDenied('child cannot fake others location', () =>
+  updateDoc(doc(db, 'members', ownerUid), {
+    location: { lat: 0, lng: 0, accuracy: 1, updatedAt: Date.now() },
+  }),
+);
 
 // cleanup test day docs + restore role for reuse
 await loginAs('owner-sub', 'kalis.martin@gmail.com', 'Martin');

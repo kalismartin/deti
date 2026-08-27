@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { KidDayCard } from '@/components/KidDayCard';
+import { ChildLocationCard, KidsLocationCard } from '@/components/LocationCards';
 import {
   useDays,
   useEvents,
@@ -62,20 +63,26 @@ export default function TodayPage() {
           Zatím nejsou nastavené žádné děti. Přidej je ve Správě.
         </p>
       ) : (
-        kids.map((kid) => (
-          <KidDayCard
-            key={kid.id}
-            adults={adults}
-            resolved={resolveDay({
-              kid,
-              date,
-              day: days.find((d) => dayDocId(d.kidId, d.date) === dayDocId(kid.id, date)),
-              events,
-              holidays,
-              exceptions,
-            })}
-          />
-        ))
+        <>
+          {kids.map((kid) => (
+            <KidDayCard
+              key={kid.id}
+              adults={adults}
+              resolved={resolveDay({
+                kid,
+                date,
+                day: days.find(
+                  (d) => dayDocId(d.kidId, d.date) === dayDocId(kid.id, date),
+                ),
+                events,
+                holidays,
+                exceptions,
+              })}
+            />
+          ))}
+          <KidsLocationCard members={members} />
+          <ChildLocationCard />
+        </>
       )}
     </div>
   );

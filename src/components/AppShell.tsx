@@ -3,9 +3,10 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { doc, setDoc } from 'firebase/firestore';
-import { useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { useAuth } from '@/lib/auth';
 import { db } from '@/lib/firebase';
+import { sharingPreferred, startSharing, stopSharing } from '@/lib/location';
 
 const NAV = [
   { href: '/', label: 'Dnes', icon: '🏠' },
@@ -17,6 +18,15 @@ const NAV = [
 export function AppShell({ children }: { children: ReactNode }) {
   const { user, member, loading, isAdmin } = useAuth();
   const pathname = usePathname();
+
+  // child accounts keep sharing location while the app is open (if enabled)
+  const isChild = member?.role === 'child';
+  const childUid = isChild ? member?.uid : undefined;
+  useEffect(() => {
+    if (!childUid || !sharingPreferred()) return;
+    startSharing(childUid);
+    return stopSharing;
+  }, [childUid]);
 
   // the invite page manages its own auth flow
   if (pathname.startsWith('/pozvanka')) return <>{children}</>;

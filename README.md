@@ -63,6 +63,10 @@ Ostatní účty se připojují přes pozvánku; testovací odkaz:
 3. Po připojení přiřadí role: **Dospělý** (vyzvedává), **Dítě** (jen prohlíží).
 4. Každý dospělý si na svém telefonu zapne notifikace zvonečkem 🔔 v hlavičce
    (na iPhonu je potřeba aplikaci nejdřív přidat na plochu).
+5. Děti si aplikaci přidají na plochu a na kartě „📍 Moje poloha“ zapnou sdílení
+   polohy — aktualizuje se, jen když mají aplikaci otevřenou (webová aplikace
+   neumí sledovat polohu na pozadí; to by vyžadovalo nativní aplikaci). Tlačítko
+   „Jsem tady!“ pošle polohu okamžitě. Rodiče polohu vidí na hlavní stránce.
 
 ## Upozornění (Cloud Functions)
 

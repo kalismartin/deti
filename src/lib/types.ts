@@ -28,6 +28,13 @@ export interface Kid {
   order: number;
 }
 
+export interface MemberLocation {
+  lat: number;
+  lng: number;
+  accuracy: number; // meters
+  updatedAt: number; // epoch ms
+}
+
 export interface Member {
   uid: string;
   name: string;
@@ -35,6 +42,8 @@ export interface Member {
   role: Role;
   photoURL?: string;
   fcmTokens?: string[];
+  /** last known location, shared by child accounts while the app is open */
+  location?: MemberLocation | null;
 }
 
 export interface Invite {
