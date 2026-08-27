@@ -77,11 +77,11 @@ export function ChildLocationCard() {
   );
 }
 
-/** Shown to adults: last known locations of child accounts. */
+/** Last known locations of child accounts — visible to the whole family,
+ * kids included, so siblings see each other too. */
 export function KidsLocationCard({ members }: { members: Member[] }) {
-  const { isAdult } = useAuth();
   const kidsWithLocation = members.filter((m) => m.role === 'child' && m.location);
-  if (!isAdult || kidsWithLocation.length === 0) return null;
+  if (kidsWithLocation.length === 0) return null;
 
   const points = kidsWithLocation.map((m, i) => ({
     id: m.uid,
