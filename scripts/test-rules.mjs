@@ -69,14 +69,14 @@ await expectAllowed('bootstrap self as admin', () =>
   }),
 );
 await expectAllowed('read kids', async () => {
-  const snap = await getDoc(doc(db, 'kids', 'terezka'));
+  const snap = await getDoc(doc(db, 'kids', 'ella'));
   if (!snap.exists()) throw new Error('seed missing – run npm run seed first');
 });
 await expectAllowed('admin claims pickup', () =>
   setDoc(
-    doc(db, 'days', 'terezka_2099-01-04'),
+    doc(db, 'days', 'ella_2099-01-04'),
     {
-      kidId: 'terezka',
+      kidId: 'ella',
       date: '2099-01-04',
       window: 'afternoon',
       claimedBy: ownerUid,
@@ -87,8 +87,8 @@ await expectAllowed('admin claims pickup', () =>
   ),
 );
 await expectDenied('day id must match kid+date', () =>
-  setDoc(doc(db, 'days', 'terezka_2099-01-05'), {
-    kidId: 'terezka',
+  setDoc(doc(db, 'days', 'ella_2099-01-05'), {
+    kidId: 'ella',
     date: '2099-01-04',
   }),
 );
@@ -97,8 +97,8 @@ await expectDenied('day id must match kid+date', () =>
 const grandmaProbe = await loginAs('grandma-sub', 'babicka@example.com', 'Babička');
 await loginAs('owner-sub', 'kalis.martin@gmail.com', 'Martin');
 await deleteDoc(doc(db, 'members', grandmaProbe)).catch(() => {});
-await deleteDoc(doc(db, 'days', 'terezka_2099-01-04')).catch(() => {});
-await deleteDoc(doc(db, 'days', 'tomas_2099-01-04')).catch(() => {});
+await deleteDoc(doc(db, 'days', 'ella_2099-01-04')).catch(() => {});
+await deleteDoc(doc(db, 'days', 'sara_2099-01-04')).catch(() => {});
 
 console.log('As stranger (no invite):');
 const strangerUid = await loginAs('stranger-sub', 'stranger@example.com', 'Stranger');
@@ -118,7 +118,7 @@ await expectDenied('join with bogus invite', () =>
   }),
 );
 await expectDenied('read kids without membership', () =>
-  getDoc(doc(db, 'kids', 'terezka')),
+  getDoc(doc(db, 'kids', 'ella')),
 );
 
 console.log('As grandma (valid invite):');
@@ -133,8 +133,8 @@ await expectAllowed('join with valid invite', () =>
 );
 await expectDenied('unassigned cannot claim', () =>
   setDoc(
-    doc(db, 'days', 'tomas_2099-01-04'),
-    { kidId: 'tomas', date: '2099-01-04', claimedBy: grandmaUid },
+    doc(db, 'days', 'sara_2099-01-04'),
+    { kidId: 'sara', date: '2099-01-04', claimedBy: grandmaUid },
     { merge: true },
   ),
 );
@@ -152,9 +152,9 @@ console.log('As grandma (adult):');
 await loginAs('grandma-sub', 'babicka@example.com', 'Babička');
 await expectAllowed('adult takes over claim', () =>
   setDoc(
-    doc(db, 'days', 'terezka_2099-01-04'),
+    doc(db, 'days', 'ella_2099-01-04'),
     {
-      kidId: 'terezka',
+      kidId: 'ella',
       date: '2099-01-04',
       window: 'lunch',
       claimedBy: grandmaUid,
@@ -166,9 +166,9 @@ await expectAllowed('adult takes over claim', () =>
 );
 await expectAllowed('adult confirms pickup', () =>
   setDoc(
-    doc(db, 'days', 'terezka_2099-01-04'),
+    doc(db, 'days', 'ella_2099-01-04'),
     {
-      kidId: 'terezka',
+      kidId: 'ella',
       date: '2099-01-04',
       pickedUpBy: grandmaUid,
       pickedUpByName: 'Babička',
@@ -183,7 +183,7 @@ await expectAllowed('adult updates own fcmTokens', () =>
   updateDoc(doc(db, 'members', grandmaUid), { fcmTokens: ['tok1'] }),
 );
 await expectDenied('adult cannot edit kids', () =>
-  updateDoc(doc(db, 'kids', 'terezka'), { name: 'X' }),
+  updateDoc(doc(db, 'kids', 'ella'), { name: 'X' }),
 );
 await expectDenied('adult cannot edit settings', () =>
   setDoc(doc(db, 'settings', 'alerts'), { unclaimedAt: '09:00' }, { merge: true }),
@@ -197,14 +197,14 @@ await expectAllowed('admin sets role=child', () =>
 
 console.log('As child:');
 await loginAs('grandma-sub', 'babicka@example.com', 'Babička');
-await expectAllowed('child reads kids', () => getDoc(doc(db, 'kids', 'terezka')));
+await expectAllowed('child reads kids', () => getDoc(doc(db, 'kids', 'ella')));
 await expectAllowed('child reads days', () =>
-  getDoc(doc(db, 'days', 'terezka_2099-01-04')),
+  getDoc(doc(db, 'days', 'ella_2099-01-04')),
 );
 await expectDenied('child cannot claim', () =>
   setDoc(
-    doc(db, 'days', 'tomas_2099-01-04'),
-    { kidId: 'tomas', date: '2099-01-04', claimedBy: grandmaUid },
+    doc(db, 'days', 'sara_2099-01-04'),
+    { kidId: 'sara', date: '2099-01-04', claimedBy: grandmaUid },
     { merge: true },
   ),
 );
@@ -223,8 +223,8 @@ await expectDenied('child cannot fake others location', () =>
 await loginAs('owner-sub', 'kalis.martin@gmail.com', 'Martin');
 await updateDoc(doc(db, 'members', grandmaUid), { role: 'adult' }).catch(() => {});
 await setDoc(
-  doc(db, 'days', 'terezka_2099-01-04'),
-  { kidId: 'terezka', date: '2099-01-04', note: deleteField() },
+  doc(db, 'days', 'ella_2099-01-04'),
+  { kidId: 'ella', date: '2099-01-04', note: deleteField() },
   { merge: true },
 ).catch(() => {});
 

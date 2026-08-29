@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react';
 import { KidDayCard } from '@/components/KidDayCard';
 import { ChildLocationCard, KidsLocationCard } from '@/components/LocationCards';
+import { PushBanner } from '@/components/PushBanner';
 import {
   useDays,
   useEvents,
@@ -37,6 +38,7 @@ export default function TodayPage() {
 
   return (
     <div className="space-y-4">
+      <PushBanner />
       <div className="flex items-center justify-between">
         <button onClick={() => setOffset(offset - 1)} className="p-2 text-xl">
           ←

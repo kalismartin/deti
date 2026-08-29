@@ -5,12 +5,15 @@
   "scripts": {
     "predev": "node scripts/gen-sw-config.mjs",
     "dev": "next dev",
+    "dev:emu": "node scripts/dev-emu.mjs",
     "prebuild": "node scripts/gen-sw-config.mjs",
     "build": "next build",
     "lint": "next lint",
     "icons": "node scripts/gen-icons.mjs",
     "seed": "node scripts/seed.mjs",
-    "emulators": "firebase emulators:start --project demo-deti",
+    "seed:emu": "node scripts/seed.mjs --emulator",
+    "emulators": "node scripts/emulators.mjs",
+    "test:rules": "node scripts/test-rules.mjs",
     "deploy": "npm run build && firebase deploy"
   },
   "dependencies": {

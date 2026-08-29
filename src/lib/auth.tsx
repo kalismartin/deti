@@ -40,22 +40,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
+  const uid = user?.uid;
   useEffect(() => {
-    if (!user) return;
+    if (!uid) return;
     setMemberLoading(true);
-    const unsub = onSnapshot(
-      doc(db(), 'members', user.uid),
-      (snap) => {
-        setMember(snap.exists() ? ({ uid: snap.id, ...snap.data() } as Member) : null);
-        setMemberLoading(false);
-      },
-      () => {
-        setMember(null);
-        setMemberLoading(false);
-      },
-    );
-    return unsub;
-  }, [user]);
+    let unsub: (() => void) | undefined;
+    let retry: ReturnType<typeof setTimeout> | undefined;
+    let cancelled = false;
+    const subscribe = () => {
+      unsub = onSnapshot(
+        doc(db(), 'members', uid),
+        (snap) => {
+          setMember(snap.exists() ? ({ uid: snap.id, ...snap.data() } as Member) : null);
+          setMemberLoading(false);
+        },
+        () => {
+          // An errored listener terminates for good. Right after sign-in this is
+          // usually a race (auth token not yet on the stream) — show the doc as
+          // missing but resubscribe to self-heal.
+          setMember(null);
+          setMemberLoading(false);
+          if (!cancelled) retry = setTimeout(subscribe, 1500);
+        },
+      );
+    };
+    subscribe();
+    return () => {
+      cancelled = true;
+      unsub?.();
+      if (retry) clearTimeout(retry);
+    };
+  }, [uid]);
 
   const value: AuthState = {
     user,

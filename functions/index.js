@@ -29,14 +29,14 @@ function pragueNow() {
     hour: '2-digit',
     minute: '2-digit',
     hour12: false,
-    weekday: 'short',
   }).formatToParts(new Date());
   const get = (t) => parts.find((p) => p.type === t)?.value ?? '';
   const date = `${get('year')}-${get('month')}-${get('day')}`;
   const time = `${get('hour')}:${get('minute')}`;
-  const weekday = { Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6, Sun: 7 }[
-    get('weekday').replace('.', '')
-  ];
+  // ISO weekday computed from the date — locale-formatted weekday names are
+  // not reliable as map keys (sv-SE yields "lör", not "Sat")
+  const wd = new Date(`${date}T12:00:00Z`).getUTCDay();
+  const weekday = wd === 0 ? 7 : wd;
   return { date, time, weekday };
 }
 
@@ -179,9 +179,13 @@ export const onDayChange = onDocumentWritten(
 
     if (after && !after.claimedBy && !after.confirmedAt) {
       const membersSnap = await db.collection('members').get();
+      // the canceller (= the ex-claimer, only they can cancel) already knows
       const adults = membersSnap.docs
         .map((d) => ({ uid: d.id, ...d.data() }))
-        .filter((m) => m.role === 'admin' || m.role === 'adult');
+        .filter(
+          (m) =>
+            (m.role === 'admin' || m.role === 'adult') && m.uid !== before.claimedBy,
+        );
       await sendPush(
         adults,
         `${kidName}: vyzvednutí zrušeno`,

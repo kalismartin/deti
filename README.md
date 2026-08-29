@@ -8,18 +8,25 @@ Rodinná aplikace pro rozvrh a vyzvedávání dětí. Návrh viz [DESIGN.md](DES
 
 ## Lokální vývoj (Firebase Emulator Suite)
 
+Funguje na Windows i Linuxu/macOS (příkazy nenastavují env proměnné v shellu):
+
 ```bash
 npm install
+cd functions && npm install && cd ..
 npm run emulators          # spustí Auth + Firestore + Functions emulátory (potřebuje Javu)
 # v druhém terminálu:
-FIRESTORE_EMULATOR_HOST=127.0.0.1:8080 npm run seed   # testovací data
-NEXT_PUBLIC_USE_EMULATORS=1 npm run dev               # aplikace na http://localhost:3000
+npm run seed:emu           # testovací data do emulátoru
+npm run dev:emu            # aplikace na http://localhost:3000 (proti emulátorům)
 ```
+
+Emulátor Firestore potřebuje Javu. Pokud není v systému, `npm run emulators` ji
+hledá i v `%LOCALAPPDATA%\deti-tools` — přenosnou JRE tam stáhneš příkazem,
+který skript vypíše (nic se neinstaluje do systému).
 
 Testy bezpečnostních pravidel (proti běžícím emulátorům, po seedu):
 
 ```bash
-node scripts/test-rules.mjs
+npm run test:rules
 ```
 
 Přihlášení v emulátoru: tlačítko „Přihlásit se přes Google“ otevře falešný

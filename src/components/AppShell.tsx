@@ -7,6 +7,7 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { useAuth } from '@/lib/auth';
 import { db } from '@/lib/firebase';
 import { sharingPreferred, startSharing, stopSharing } from '@/lib/location';
+import { refreshPushToken } from '@/lib/messaging';
 
 const NAV = [
   { href: '/', label: 'Dnes', icon: '🏠' },
@@ -15,9 +16,22 @@ const NAV = [
   { href: '/sprava/', label: 'Správa', icon: '⚙️', adminOnly: true },
 ];
 
+const LEGACY_HOSTS = ['deti-mk.web.app', 'deti-mk.firebaseapp.com'];
+const CANONICAL_ORIGIN = 'https://deti.martinkalis.com';
+
 export function AppShell({ children }: { children: ReactNode }) {
   const { user, member, loading, isAdmin } = useAuth();
   const pathname = usePathname();
+
+  // legacy hosting domains → custom domain; a second origin would otherwise
+  // register its own push subscription and every alert would arrive twice
+  useEffect(() => {
+    if (LEGACY_HOSTS.includes(window.location.hostname)) {
+      window.location.replace(
+        `${CANONICAL_ORIGIN}${window.location.pathname}${window.location.search}`,
+      );
+    }
+  }, []);
 
   // child accounts keep sharing location while the app is open (if enabled)
   const isChild = member?.role === 'child';
@@ -27,6 +41,13 @@ export function AppShell({ children }: { children: ReactNode }) {
     startSharing(childUid);
     return stopSharing;
   }, [childUid]);
+
+  // FCM tokens rotate — silently re-register on app open so push keeps working
+  const memberUid = member?.uid;
+  useEffect(() => {
+    if (!memberUid || LEGACY_HOSTS.includes(window.location.hostname)) return;
+    void refreshPushToken(memberUid);
+  }, [memberUid]);
 
   // the invite page manages its own auth flow
   if (pathname.startsWith('/pozvanka')) return <>{children}</>;
@@ -73,13 +94,22 @@ export function AppShell({ children }: { children: ReactNode }) {
   );
 }
 
-/** Bell for adults to enable push notifications on this device. */
+/** Bell for members to enable push notifications on this device. */
 function PushBell() {
-  const { member, isAdult } = useAuth();
+  const { member } = useAuth();
   const [enabled, setEnabled] = useState(
     typeof window !== 'undefined' && !!localStorage.getItem('fcmToken'),
   );
-  if (!isAdult || !member) return null;
+  useEffect(() => {
+    const sync = () => {
+      try {
+        setEnabled(!!localStorage.getItem('fcmToken'));
+      } catch {}
+    };
+    window.addEventListener('fcm-changed', sync);
+    return () => window.removeEventListener('fcm-changed', sync);
+  }, []);
+  if (!member) return null;
   return (
     <button
       title={enabled ? 'Notifikace zapnuty' : 'Zapnout notifikace'}
