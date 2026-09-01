@@ -5,18 +5,8 @@ importScripts('https://www.gstatic.com/firebasejs/11.10.0/firebase-messaging-com
 importScripts('/firebase-config.js');
 
 firebase.initializeApp(self.FIREBASE_CONFIG);
-const messaging = firebase.messaging();
-
-messaging.onBackgroundMessage((payload) => {
-  const n = payload.notification ?? {};
-  self.registration.showNotification(n.title ?? 'Děti', {
-    body: n.body ?? '',
-    icon: '/icons/icon-192.png',
-    badge: '/icons/icon-192.png',
-  });
-});
-
-self.addEventListener('notificationclick', (event) => {
-  event.notification.close();
-  event.waitUntil(self.clients.openWindow('/'));
-});
+// Instantiating messaging is all that's needed: the SDK auto-displays
+// background messages carrying a notification payload and opens
+// fcmOptions.link on click. A manual showNotification() here would show
+// every notification twice.
+firebase.messaging();
