@@ -40,8 +40,46 @@ const kids = {
       lunch: { start: '13:30', end: '14:00', label: 'Po obědě' },
       afternoon: { start: '15:30', end: '17:00', label: 'Odpoledne' },
     },
-    // rozvrh hodin zatím nedodán — doplnit ve Správa → Děti
-    hourSchedule: {},
+    // rozvrh 3.B platný od 7. 9. 2026 (Bakaláři); AJ = 1. skupina (Suchá)
+    hourSchedule: {
+      1: [
+        { start: '08:00', end: '08:45', subject: 'Čeština' },
+        { start: '08:55', end: '09:40', subject: 'Matematika' },
+        { start: '10:00', end: '10:45', subject: 'Hudebka' },
+        { start: '10:55', end: '11:40', subject: 'Angličtina' },
+        { start: '11:50', end: '12:35', subject: 'Tělocvik' },
+      ],
+      2: [
+        { start: '08:00', end: '08:45', subject: 'Čeština' },
+        { start: '08:55', end: '09:40', subject: 'Matematika' },
+        { start: '10:00', end: '10:45', subject: 'Prvouka' },
+        { start: '10:55', end: '11:40', subject: 'Čeština' },
+        { start: '11:50', end: '12:35', subject: 'Pracovky' },
+      ],
+      3: [
+        { start: '08:00', end: '08:45', subject: 'Čeština' },
+        { start: '08:55', end: '09:40', subject: 'Angličtina' },
+        { start: '10:00', end: '10:45', subject: 'Matematika' },
+        { start: '10:55', end: '11:40', subject: 'Prvouka' },
+      ],
+      4: [
+        { start: '08:00', end: '08:45', subject: 'Čeština' },
+        { start: '08:55', end: '09:40', subject: 'Matematika' },
+        { start: '10:00', end: '10:45', subject: 'Čeština' },
+        { start: '10:55', end: '11:40', subject: 'Prvouka' },
+        { start: '11:50', end: '12:35', subject: 'Výtvarka' },
+      ],
+      5: [
+        { start: '08:00', end: '08:45', subject: 'Čeština' },
+        { start: '08:55', end: '09:40', subject: 'Angličtina' },
+        { start: '10:00', end: '10:45', subject: 'Matematika' },
+        { start: '10:55', end: '11:40', subject: 'Čeština' },
+        { start: '11:50', end: '12:35', subject: 'Tělocvik' },
+      ],
+    },
+    // pocket money: daily room check on; guardians (uids) set by admin in prod
+    chores: { cleaning: true, dailyAmount: 5 },
+    guardians: [],
     order: 1,
   },
   ella: {
@@ -55,6 +93,8 @@ const kids = {
       afternoon: { start: '15:00', end: '17:45', label: 'Odpoledne' },
     },
     hourSchedule: {},
+    chores: { cleaning: false, dailyAmount: 5 },
+    guardians: [],
     order: 2,
   },
 };

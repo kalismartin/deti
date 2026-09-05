@@ -219,6 +219,130 @@ await expectDenied('child cannot fake others location', () =>
   }),
 );
 
+console.log('Pocket money (Banka):');
+// setup: a child member linked to kid sara, owner as guardian
+const ownerUid2 = ownerUid;
+const saraUid = await loginAs('sara-sub', 'sara-test@example.com', 'SaraTest');
+await setDoc(
+  doc(db, 'members', saraUid),
+  {
+    name: 'SaraTest',
+    email: 'sara-test@example.com',
+    role: 'unassigned',
+    inviteToken: 'test-invite-token',
+  },
+).catch(() => {}); // may already exist from a previous run
+await loginAs('owner-sub', 'kalis.martin@gmail.com', 'Martin');
+await updateDoc(doc(db, 'members', saraUid), { role: 'child', kidId: 'sara' });
+await updateDoc(doc(db, 'kids', 'sara'), { guardians: [ownerUid2] });
+// grandma was demoted to child in the role tests above — restore for bonus test
+await updateDoc(doc(db, 'members', grandmaUid), { role: 'adult' });
+// idempotency: clear leftovers
+await deleteDoc(doc(db, 'days', 'sara_2099-01-04')).catch(() => {});
+await deleteDoc(doc(db, 'choreDays', 'sara_2099-01-04')).catch(() => {});
+await deleteDoc(doc(db, 'pocket', 'test-bonus-1')).catch(() => {});
+await deleteDoc(doc(db, 'pocket', 'test-cash-1')).catch(() => {});
+
+console.log('As child (sara):');
+await loginAs('sara-sub', 'sara-test@example.com', 'SaraTest');
+await expectAllowed('kid suggests own clean day', () =>
+  setDoc(doc(db, 'choreDays', 'sara_2099-01-04'), {
+    kidId: 'sara',
+    date: '2099-01-04',
+    suggestedAt: Date.now(),
+    suggestedNote: 'hotovo',
+  }),
+);
+await expectDenied('kid cannot judge own day', () =>
+  updateDoc(doc(db, 'choreDays', 'sara_2099-01-04'), { state: 'clean' }),
+);
+await expectDenied('kid cannot suggest for another kid', () =>
+  setDoc(doc(db, 'choreDays', 'ella_2099-01-04'), {
+    kidId: 'ella',
+    date: '2099-01-04',
+    suggestedAt: Date.now(),
+  }),
+);
+await expectDenied('kid cannot create bonus', () =>
+  setDoc(doc(db, 'pocket', 'test-bonus-1'), {
+    kidId: 'sara',
+    type: 'bonus',
+    amount: 500,
+    label: 'hack',
+    createdBy: saraUid,
+    createdByName: 'SaraTest',
+    createdAt: Date.now(),
+  }),
+);
+await expectAllowed('kid requests cashout', () =>
+  setDoc(doc(db, 'pocket', 'test-cash-1'), {
+    kidId: 'sara',
+    type: 'cashout',
+    status: 'requested',
+    amount: 20,
+    label: 'na zmrzlinu',
+    createdBy: saraUid,
+    createdByName: 'SaraTest',
+    createdAt: Date.now(),
+  }),
+);
+await expectDenied('kid cannot pay own cashout', () =>
+  updateDoc(doc(db, 'pocket', 'test-cash-1'), {
+    status: 'paid',
+    paidBy: saraUid,
+    paidByName: 'SaraTest',
+    paidAt: Date.now(),
+  }),
+);
+
+console.log('As non-guardian adult (grandma):');
+await loginAs('grandma-sub', 'babicka@example.com', 'Babička');
+await expectDenied('non-guardian cannot judge', () =>
+  updateDoc(doc(db, 'choreDays', 'sara_2099-01-04'), {
+    state: 'clean',
+    reviewedBy: grandmaUid,
+    reviewedByName: 'Babička',
+    reviewedAt: Date.now(),
+  }),
+);
+await expectAllowed('adult adds bonus', () =>
+  setDoc(doc(db, 'pocket', 'test-bonus-1'), {
+    kidId: 'sara',
+    type: 'bonus',
+    amount: 50,
+    label: 'umyla auto',
+    createdBy: grandmaUid,
+    createdByName: 'Babička',
+    createdAt: Date.now(),
+  }),
+);
+
+console.log('As guardian (owner):');
+await loginAs('owner-sub', 'kalis.martin@gmail.com', 'Martin');
+await expectAllowed('guardian judges day clean', () =>
+  updateDoc(doc(db, 'choreDays', 'sara_2099-01-04'), {
+    state: 'clean',
+    reviewedBy: ownerUid2,
+    reviewedByName: 'Martin',
+    reviewedAt: Date.now(),
+  }),
+);
+await expectAllowed('guardian pays cashout', () =>
+  updateDoc(doc(db, 'pocket', 'test-cash-1'), {
+    status: 'paid',
+    paidBy: ownerUid2,
+    paidByName: 'Martin',
+    paidAt: Date.now(),
+  }),
+);
+
+// pocket cleanup
+await deleteDoc(doc(db, 'choreDays', 'sara_2099-01-04')).catch(() => {});
+await deleteDoc(doc(db, 'pocket', 'test-bonus-1')).catch(() => {});
+await deleteDoc(doc(db, 'pocket', 'test-cash-1')).catch(() => {});
+await updateDoc(doc(db, 'kids', 'sara'), { guardians: [] }).catch(() => {});
+await deleteDoc(doc(db, 'members', saraUid)).catch(() => {});
+
 // cleanup test day docs + restore role for reuse
 await loginAs('owner-sub', 'kalis.martin@gmail.com', 'Martin');
 await updateDoc(doc(db, 'members', grandmaUid), { role: 'adult' }).catch(() => {});

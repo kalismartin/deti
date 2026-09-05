@@ -84,6 +84,74 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    // ---------- pocket money (Banka) ----------
+
+    // the kid record linked to the signed-in member (child accounts)
+    function myKidId() {
+      return get(/databases/$(database)/documents/members/$(request.auth.uid)).data.kidId;
+    }
+
+    function isGuardianOf(kidId) {
+      return isMember()
+        && request.auth.uid in get(/databases/$(database)/documents/kids/$(kidId)).data.guardians;
+    }
+
+    // daily room-cleanliness verdicts, id = kidId_date
+    match /choreDays/{dayId} {
+      allow read: if isMember();
+      // kid suggests their own day: suggestion fields only
+      allow create: if isMember()
+        && request.resource.data.kidId == myKidId()
+        && dayId == request.resource.data.kidId + '_' + request.resource.data.date
+        && request.resource.data.keys()
+             .hasOnly(['kidId', 'date', 'suggestedAt', 'suggestedNote']);
+      allow update: if isMember()
+        && resource.data.kidId == myKidId()
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['suggestedAt', 'suggestedNote']);
+      // guardian judges (or re-judges) the day
+      allow create: if isGuardianOf(request.resource.data.kidId)
+        && dayId == request.resource.data.kidId + '_' + request.resource.data.date;
+      allow update: if isGuardianOf(resource.data.kidId)
+        && request.resource.data.kidId == resource.data.kidId
+        && request.resource.data.date == resource.data.date;
+      allow delete: if isAdmin();
+    }
+
+    // bonuses and cashouts
+    match /pocket/{entryId} {
+      allow read: if isMember();
+      // adult adds a signed bonus with a label
+      allow create: if isAdult()
+        && request.resource.data.type == 'bonus'
+        && request.resource.data.kidId is string
+        && request.resource.data.amount is number
+        && request.resource.data.label is string;
+      // kid requests a payout of their own money
+      allow create: if isMember()
+        && request.resource.data.type == 'cashout'
+        && request.resource.data.kidId == myKidId()
+        && request.resource.data.status == 'requested'
+        && request.resource.data.amount is number
+        && request.resource.data.amount > 0;
+      // guardian records a payout directly
+      allow create: if isGuardianOf(request.resource.data.kidId)
+        && request.resource.data.type == 'cashout'
+        && request.resource.data.status == 'paid'
+        && request.resource.data.amount is number
+        && request.resource.data.amount > 0;
+      // guardian pays a pending request
+      allow update: if isGuardianOf(resource.data.kidId)
+        && resource.data.type == 'cashout'
+        && request.resource.data.status == 'paid'
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['status', 'paidBy', 'paidByName', 'paidAt']);
+      // dismiss a pending request: guardian, or the kid changing their mind
+      allow delete: if resource.data.status == 'requested'
+        && (isGuardianOf(resource.data.kidId) || resource.data.kidId == myKidId());
+      allow delete: if isAdmin();
+    }
+
     // pickup days: adults claim/confirm/note; children read-only
     match /days/{dayId} {
       allow read: if isMember();

@@ -41,7 +41,16 @@ export default function HistoryPage() {
             >
               <p>
                 <span className="font-semibold">{kidName(d.kidId)}</span>{' '}
-                <span className="text-slate-400">{formatDateCs(d.date)}</span>
+                <span className="text-slate-400">
+                  {formatDateCs(d.date)}
+                  {d.confirmedAt
+                    ? ` v ${new Date(d.confirmedAt).toLocaleTimeString('cs-CZ', {
+                        timeZone: 'Europe/Prague',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}`
+                    : ''}
+                </span>
               </p>
               <p className="text-slate-600">
                 Vyzvedl(a) <strong>{d.pickedUpByName}</strong>

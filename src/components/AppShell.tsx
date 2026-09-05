@@ -12,6 +12,7 @@ import { refreshPushToken } from '@/lib/messaging';
 const NAV = [
   { href: '/', label: 'Dnes', icon: '🏠' },
   { href: '/tyden/', label: 'Týden', icon: '📅' },
+  { href: '/banka/', label: 'Banka', icon: '🏦' },
   { href: '/historie/', label: 'Historie', icon: '📖' },
   { href: '/sprava/', label: 'Správa', icon: '⚙️', adminOnly: true },
 ];
@@ -66,22 +67,26 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="mx-auto flex min-h-dvh max-w-lg flex-col">
-      <header className="flex items-center justify-between px-4 pt-4 pb-2">
-        <h1 className="text-xl font-bold text-brand">Děti</h1>
-        <div className="flex items-center gap-3">
-          <PushBell />
-          <UserBadge />
+      <header className="sticky top-0 z-20 border-b border-slate-900/5 bg-white/80 backdrop-blur">
+        <div className="flex items-center justify-between px-4 py-3">
+          <h1 className="text-xl font-extrabold tracking-tight text-brand">Děti</h1>
+          <div className="flex items-center gap-3">
+            <PushBell />
+            <UserBadge />
+          </div>
         </div>
       </header>
-      <main className="flex-1 px-4 pb-24">{children}</main>
-      <nav className="fixed inset-x-0 bottom-0 border-t border-slate-200 bg-white">
-        <div className="mx-auto flex max-w-lg">
+      <main className="flex-1 px-4 pt-4 pb-28">{children}</main>
+      <nav className="fixed inset-x-0 bottom-0 z-20 border-t border-slate-900/5 bg-white/90 pb-[env(safe-area-inset-bottom)] backdrop-blur">
+        <div className="mx-auto flex max-w-lg px-1 py-1">
           {NAV.filter((n) => !n.adminOnly || isAdmin).map((n) => (
             <Link
               key={n.href}
               href={n.href}
-              className={`flex flex-1 flex-col items-center gap-0.5 py-2 text-xs ${
-                pathname === n.href ? 'font-semibold text-brand' : 'text-slate-500'
+              className={`mx-0.5 flex flex-1 flex-col items-center gap-0.5 rounded-xl py-1.5 text-[11px] transition-colors ${
+                pathname === n.href
+                  ? 'bg-brand/10 font-semibold text-brand'
+                  : 'text-slate-500'
               }`}
             >
               <span className="text-lg leading-none">{n.icon}</span>

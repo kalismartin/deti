@@ -17,12 +17,15 @@ import {
 import { db } from './firebase';
 import type {
   AlertSettings,
+  ChoreDay,
+  ChoreState,
   DayDoc,
   FamilyEvent,
   Holiday,
   Invite,
   Kid,
   Member,
+  PocketEntry,
   ScheduleException,
   WindowKey,
 } from './types';
@@ -192,6 +195,145 @@ export async function setDayNote(
     note ? { kidId, date, note } : { kidId, date, note: deleteField() },
     { merge: true },
   );
+}
+
+// ---------- pocket money (Banka) ----------
+
+export function useChoreDays(from: string, to: string): ChoreDay[] | null {
+  const q = useMemo(
+    () =>
+      query(
+        collection(db(), 'choreDays'),
+        where('date', '>=', from),
+        where('date', '<=', to),
+      ),
+    [from, to],
+  );
+  return useCollection<ChoreDay>(q);
+}
+
+/** full history — needed for the balance */
+export function useAllChoreDays(): ChoreDay[] | null {
+  const q = useMemo(() => query(collection(db(), 'choreDays')), []);
+  return useCollection<ChoreDay>(q);
+}
+
+export function usePocket(): PocketEntry[] | null {
+  const q = useMemo(() => query(collection(db(), 'pocket')), []);
+  return useCollection<PocketEntry>(q);
+}
+
+/** kid reports their room as clean (today or yesterday) */
+export async function suggestClean(
+  kidId: string,
+  date: string,
+  note: string,
+): Promise<void> {
+  await setDoc(
+    doc(db(), 'choreDays', dayDocId(kidId, date)),
+    {
+      kidId,
+      date,
+      suggestedAt: Date.now(),
+      ...(note ? { suggestedNote: note } : {}),
+    },
+    { merge: true },
+  );
+}
+
+/** guardian verdict for a day (may also overwrite an earlier verdict) */
+export async function reviewChoreDay(
+  kidId: string,
+  date: string,
+  state: ChoreState,
+  reviewer: Member,
+): Promise<void> {
+  await setDoc(
+    doc(db(), 'choreDays', dayDocId(kidId, date)),
+    {
+      kidId,
+      date,
+      state,
+      reviewedBy: reviewer.uid,
+      reviewedByName: reviewer.name,
+      reviewedAt: Date.now(),
+    },
+    { merge: true },
+  );
+}
+
+/** adult adds a signed bonus/penalty with a label */
+export async function addBonus(
+  kidId: string,
+  amount: number,
+  label: string,
+  by: Member,
+): Promise<void> {
+  await setDoc(doc(collection(db(), 'pocket')), {
+    kidId,
+    type: 'bonus',
+    amount,
+    label,
+    createdBy: by.uid,
+    createdByName: by.name,
+    createdAt: Date.now(),
+  });
+}
+
+/** kid asks for a payout */
+export async function requestCashout(
+  kidId: string,
+  amount: number,
+  comment: string,
+  by: Member,
+): Promise<void> {
+  await setDoc(doc(collection(db(), 'pocket')), {
+    kidId,
+    type: 'cashout',
+    status: 'requested',
+    amount,
+    label: comment,
+    createdBy: by.uid,
+    createdByName: by.name,
+    createdAt: Date.now(),
+  });
+}
+
+/** guardian hands over the cash and records it */
+export async function payCashout(entryId: string, by: Member): Promise<void> {
+  await updateDoc(doc(db(), 'pocket', entryId), {
+    status: 'paid',
+    paidBy: by.uid,
+    paidByName: by.name,
+    paidAt: Date.now(),
+  });
+}
+
+/** guardian records a payout directly (no request) */
+export async function recordPayout(
+  kidId: string,
+  amount: number,
+  comment: string,
+  by: Member,
+): Promise<void> {
+  await setDoc(doc(collection(db(), 'pocket')), {
+    kidId,
+    type: 'cashout',
+    status: 'paid',
+    amount,
+    label: comment,
+    createdBy: by.uid,
+    createdByName: by.name,
+    createdAt: Date.now(),
+    paidBy: by.uid,
+    paidByName: by.name,
+    paidAt: Date.now(),
+  });
+}
+
+/** dismiss a pending request (guardian, or the kid changing their mind) */
+export async function dismissCashout(entryId: string): Promise<void> {
+  await deleteDoc(doc(db(), 'pocket', entryId));
 }
 
 // ---------- admin CRUD ----------

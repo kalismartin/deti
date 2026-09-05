@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react';
 import { KidDayCard } from '@/components/KidDayCard';
 import { ChildLocationCard, KidsLocationCard } from '@/components/LocationCards';
+import { PokojicekCard } from '@/components/PokojicekCard';
 import { PushBanner } from '@/components/PushBanner';
 import {
   useDays,
@@ -82,6 +83,7 @@ export default function TodayPage() {
               })}
             />
           ))}
+          {offset === 0 && <PokojicekCard kids={kids} />}
           <KidsLocationCard members={members} />
           <ChildLocationCard />
         </>

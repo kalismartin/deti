@@ -15,10 +15,10 @@ import { WINDOW_LABELS } from '@/lib/types';
 import { isoWeekday } from '@/lib/time';
 
 const STATE_STYLES: Record<string, { badge: string; label: string; ring: string }> = {
-  rest: { badge: 'bg-slate-200 text-slate-600', label: 'Volno', ring: 'ring-slate-200' },
-  unclaimed: { badge: 'bg-unclaimed text-white', label: 'Nikdo nevyzvedává!', ring: 'ring-unclaimed/40' },
-  claimed: { badge: 'bg-claimed text-white', label: 'Zamluveno', ring: 'ring-claimed/40' },
-  confirmed: { badge: 'bg-confirmed text-white', label: 'Vyzvednuto', ring: 'ring-confirmed/40' },
+  rest: { badge: 'bg-slate-100 text-slate-500', label: 'Volno', ring: 'ring-slate-900/5' },
+  unclaimed: { badge: 'bg-rose-100 text-rose-700', label: 'Nikdo nevyzvedává!', ring: 'ring-rose-200' },
+  claimed: { badge: 'bg-amber-100 text-amber-700', label: 'Zamluveno', ring: 'ring-amber-200' },
+  confirmed: { badge: 'bg-emerald-100 text-emerald-700', label: 'Vyzvednuto', ring: 'ring-emerald-200' },
 };
 
 export function KidDayCard({

@@ -208,6 +208,95 @@ export const onDayChange = onDocumentWritten(
   },
 );
 
+/**
+ * Pocket-money notifications: kid's clean-room report pings the guardians;
+ * verdicts, bonuses and payouts ping the kid's own account.
+ */
+export const onChoreChange = onDocumentWritten(
+  { document: 'choreDays/{id}', region: 'europe-west1' },
+  async (event) => {
+    const before = event.data?.before?.data();
+    const after = event.data?.after?.data();
+    if (!after) return;
+    const kid = (await db.doc(`kids/${after.kidId}`).get()).data() ?? {};
+    const kidName = kid.name ?? after.kidId;
+    const daily = kid.chores?.dailyAmount ?? 5;
+    const members = (await db.collection('members').get()).docs.map((d) => ({
+      uid: d.id,
+      ...d.data(),
+    }));
+
+    if (after.suggestedAt && !before?.suggestedAt && !after.state) {
+      const guardians = members.filter((m) => (kid.guardians ?? []).includes(m.uid));
+      await sendPush(
+        guardians,
+        `🧹 ${kidName} hlásí uklizeno`,
+        `${after.suggestedNote ? `„${after.suggestedNote}“ — ` : ''}Zkontroluj pokojíček a potvrď v aplikaci.`,
+      );
+    }
+    if (after.state && after.state !== before?.state) {
+      const kidMember = members.filter((m) => m.kidId === after.kidId);
+      await sendPush(
+        kidMember,
+        after.state === 'clean'
+          ? `✨ Pokojíček schválen: +${daily} Kč`
+          : `🙈 Pokojíček neprošel: −${daily} Kč`,
+        after.state === 'clean'
+          ? `${after.reviewedByName ?? 'Rodič'} potvrdil(a) úklid. Dobrá práce!`
+          : `${after.reviewedByName ?? 'Rodič'} úklid neuznal(a).`,
+      );
+    }
+  },
+);
+
+export const onPocketChange = onDocumentWritten(
+  { document: 'pocket/{id}', region: 'europe-west1' },
+  async (event) => {
+    const before = event.data?.before?.data();
+    const after = event.data?.after?.data();
+    const data = after ?? before;
+    if (!data) return;
+    const kid = (await db.doc(`kids/${data.kidId}`).get()).data() ?? {};
+    const kidName = kid.name ?? data.kidId;
+    const members = (await db.collection('members').get()).docs.map((d) => ({
+      uid: d.id,
+      ...d.data(),
+    }));
+    const kidMember = members.filter((m) => m.kidId === data.kidId);
+    const guardians = members.filter((m) => (kid.guardians ?? []).includes(m.uid));
+
+    if (after && !before) {
+      if (after.type === 'bonus') {
+        await sendPush(
+          kidMember,
+          `💰 ${after.amount > 0 ? '+' : ''}${after.amount} Kč: ${after.label}`,
+          `Od: ${after.createdByName}. Zůstatek najdeš v Bance.`,
+        );
+      } else if (after.type === 'cashout' && after.status === 'requested') {
+        await sendPush(
+          guardians,
+          `💸 ${kidName} žádá o ${after.amount} Kč`,
+          after.label ? `„${after.label}“` : 'Bez komentáře.',
+        );
+      } else if (after.type === 'cashout' && after.status === 'paid') {
+        await sendPush(kidMember, `💵 Vyplaceno ${after.amount} Kč`, after.label || 'Užij si to!');
+      }
+    } else if (before?.status === 'requested' && after?.status === 'paid') {
+      await sendPush(
+        kidMember,
+        `💵 Vyplaceno ${after.amount} Kč`,
+        `${after.paidByName ?? 'Rodič'} ti předá peníze. 🤑`,
+      );
+    } else if (!after && before.type === 'cashout' && before.status === 'requested') {
+      await sendPush(
+        kidMember,
+        `Žádost o ${before.amount} Kč zrušena`,
+        'Zkus jinou částku, nebo se domluv s rodiči.',
+      );
+    }
+  },
+);
+
 async function sendPush(recipients, title, body) {
   const tokens = [...new Set(recipients.flatMap((m) => m.fcmTokens ?? []))];
   if (tokens.length === 0) return;

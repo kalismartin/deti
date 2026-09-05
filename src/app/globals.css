@@ -3,9 +3,9 @@
 
 @theme {
   --color-brand: #2563eb;
-  --color-unclaimed: #dc2626;
+  --color-unclaimed: #e11d48;
   --color-claimed: #d97706;
-  --color-confirmed: #16a34a;
+  --color-confirmed: #059669;
 }
 
 html {
@@ -13,5 +13,8 @@ html {
 }
 
 body {
-  @apply bg-slate-50 text-slate-900 antialiased;
+  @apply text-slate-900 antialiased;
+  background:
+    radial-gradient(60rem 24rem at 50% -8rem, #dbe7ff 0%, transparent 70%),
+    #f4f6fb;
 }
