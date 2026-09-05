@@ -1,7 +1,10 @@
 import type { Metadata, Viewport } from 'next';
+import { Nunito } from 'next/font/google';
 import './globals.css';
 import { AuthProvider } from '@/lib/auth';
 import { AppShell } from '@/components/AppShell';
+
+const nunito = Nunito({ subsets: ['latin', 'latin-ext'] });
 
 export const metadata: Metadata = {
   title: 'Děti',
@@ -19,7 +22,7 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="cs">
-      <body>
+      <body className={nunito.className}>
         <AuthProvider>
           <AppShell>{children}</AppShell>
         </AuthProvider>

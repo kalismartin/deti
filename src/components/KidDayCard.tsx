@@ -13,6 +13,14 @@ import type { ResolvedDay } from '@/lib/schedule';
 import type { Member, WindowKey } from '@/lib/types';
 import { WINDOW_LABELS } from '@/lib/types';
 import { isoWeekday } from '@/lib/time';
+import {
+  IconClock,
+  IconPencil,
+  IconSchool,
+  IconStar,
+  IconSunrise,
+} from '@/components/icons';
+import type { ReactNode } from 'react';
 
 const STATE_STYLES: Record<string, { badge: string; label: string; ring: string }> = {
   rest: { badge: 'bg-slate-100 text-slate-500', label: 'Volno', ring: 'ring-slate-900/5' },
@@ -50,13 +58,16 @@ export function KidDayCard({
   }
 
   return (
-    <section
-      className={`rounded-2xl bg-white p-4 shadow-sm ring-2 ${style.ring}`}
-      style={{ borderTop: `4px solid ${kid.color}` }}
-    >
-      <div className="flex items-center justify-between gap-2">
-        <div>
-          <h2 className="text-lg font-bold">{kid.name}</h2>
+    <section className={`rounded-2xl bg-white p-4 shadow-sm ring-2 ${style.ring}`}>
+      <div className="flex items-center gap-3">
+        <span
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-base font-extrabold text-white"
+          style={{ background: kid.color }}
+        >
+          {kid.name[0]}
+        </span>
+        <div className="min-w-0 flex-1">
+          <h2 className="text-lg font-bold leading-tight">{kid.name}</h2>
           {kid.className && <p className="text-xs text-slate-400">{kid.className}</p>}
         </div>
         <span className={`rounded-full px-3 py-1 text-xs font-semibold ${style.badge}`}>
@@ -65,20 +76,20 @@ export function KidDayCard({
       </div>
 
       {/* timeline */}
-      <div className="mt-3 space-y-1 text-sm">
+      <div className="mt-3 space-y-1.5 rounded-xl bg-slate-50/70 p-3 text-sm">
         {kid.arrival && state !== 'rest' && (
-          <Row icon="🌅" text={`Příchod ${kid.arrival.start} – ${kid.arrival.end}`} />
+          <Row icon={<IconSunrise />} text={`Příchod ${kid.arrival.start} – ${kid.arrival.end}`} />
         )}
         {lessons.length > 0 && state !== 'rest' && (
           <Row
-            icon="🏫"
+            icon={<IconSchool />}
             text={`Vyučování ${lessons[0].start} – ${lessons[lessons.length - 1].end}`}
           />
         )}
         {events.map((e) => (
           <Row
             key={e.id}
-            icon="⭐"
+            icon={<IconStar />}
             text={`${e.title}${e.start ? ` ${e.start}${e.end ? `–${e.end}` : ''}` : ''}${
               e.pickupAt ? ` (vyzvednout ve ${e.pickupAt})` : ''
             }`}
@@ -86,7 +97,7 @@ export function KidDayCard({
         ))}
         {state !== 'rest' && (
           <Row
-            icon="🚸"
+            icon={<IconClock />}
             text={
               day?.window
                 ? `Vyzvednutí: ${WINDOW_LABELS[day.window]} (${resolved.windows[day.window].start} – ${resolved.windows[day.window].end}${resolved.pickupAt ? `, kvůli akci do ${resolved.pickupAt}` : ''})`
@@ -257,9 +268,10 @@ export function KidDayCard({
                 setEditingNote(true);
               }
             }}
-            className="text-left text-slate-500"
+            className="flex items-center gap-2 text-left text-slate-500"
           >
-            📝 {day?.note ? day.note : isAdult ? 'Přidat poznámku…' : '—'}
+            <IconPencil className="h-4 w-4 shrink-0 text-slate-400" />
+            {day?.note ? day.note : isAdult ? 'Přidat poznámku…' : '—'}
           </button>
         )}
       </div>
@@ -267,10 +279,12 @@ export function KidDayCard({
   );
 }
 
-function Row({ icon, text }: { icon: string; text: string }) {
+function Row({ icon, text }: { icon: ReactNode; text: string }) {
   return (
-    <p className="flex items-start gap-2 text-slate-600">
-      <span>{icon}</span>
+    <p className="flex items-start gap-2.5 text-slate-600">
+      <span className="mt-0.5 shrink-0 text-slate-400 [&>svg]:h-4 [&>svg]:w-4">
+        {icon}
+      </span>
       <span>{text}</span>
     </p>
   );

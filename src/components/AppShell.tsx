@@ -8,13 +8,21 @@ import { useAuth } from '@/lib/auth';
 import { db } from '@/lib/firebase';
 import { sharingPreferred, startSharing, stopSharing } from '@/lib/location';
 import { refreshPushToken } from '@/lib/messaging';
+import {
+  IconBank,
+  IconBell,
+  IconBook,
+  IconCalendar,
+  IconHome,
+  IconSettings,
+} from '@/components/icons';
 
 const NAV = [
-  { href: '/', label: 'Dnes', icon: '🏠' },
-  { href: '/tyden/', label: 'Týden', icon: '📅' },
-  { href: '/banka/', label: 'Banka', icon: '🏦' },
-  { href: '/historie/', label: 'Historie', icon: '📖' },
-  { href: '/sprava/', label: 'Správa', icon: '⚙️', adminOnly: true },
+  { href: '/', label: 'Dnes', Icon: IconHome },
+  { href: '/tyden/', label: 'Týden', Icon: IconCalendar },
+  { href: '/banka/', label: 'Banka', Icon: IconBank },
+  { href: '/historie/', label: 'Historie', Icon: IconBook },
+  { href: '/sprava/', label: 'Správa', Icon: IconSettings, adminOnly: true },
 ];
 
 const LEGACY_HOSTS = ['deti-mk.web.app', 'deti-mk.firebaseapp.com'];
@@ -65,20 +73,27 @@ export function AppShell({ children }: { children: ReactNode }) {
   if (!member) return <NoMemberScreen />;
   if (member.role === 'unassigned') return <WaitingScreen />;
 
+  // header and nav are permanent chrome; only <main> scrolls
   return (
-    <div className="mx-auto flex min-h-dvh max-w-lg flex-col">
-      <header className="sticky top-0 z-20 border-b border-slate-900/5 bg-white/80 backdrop-blur">
+    <div className="mx-auto flex h-dvh max-w-lg flex-col">
+      <header className="z-20 border-b border-slate-900/5 bg-white/80 backdrop-blur">
         <div className="flex items-center justify-between px-4 py-3">
-          <h1 className="text-xl font-extrabold tracking-tight text-brand">Děti</h1>
+          <div className="flex items-center gap-2">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/icons/icon-192.png" alt="" className="h-7 w-7 rounded-lg" />
+            <h1 className="text-xl font-extrabold tracking-tight text-brand">Děti</h1>
+          </div>
           <div className="flex items-center gap-3">
             <PushBell />
             <UserBadge />
           </div>
         </div>
       </header>
-      <main className="flex-1 px-4 pt-4 pb-28">{children}</main>
-      <nav className="fixed inset-x-0 bottom-0 z-20 border-t border-slate-900/5 bg-white/90 pb-[env(safe-area-inset-bottom)] backdrop-blur">
-        <div className="mx-auto flex max-w-lg px-1 py-1">
+      <main className="flex-1 overflow-y-auto overscroll-contain px-4 pt-4 pb-6">
+        {children}
+      </main>
+      <nav className="z-20 border-t border-slate-900/5 bg-white/90 pb-[env(safe-area-inset-bottom)] backdrop-blur">
+        <div className="flex px-1 py-1">
           {NAV.filter((n) => !n.adminOnly || isAdmin).map((n) => (
             <Link
               key={n.href}
@@ -89,7 +104,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                   : 'text-slate-500'
               }`}
             >
-              <span className="text-lg leading-none">{n.icon}</span>
+              <n.Icon className="h-[22px] w-[22px]" />
               {n.label}
             </Link>
           ))}
@@ -127,9 +142,9 @@ function PushBell() {
           alert('Notifikace na tomto zařízení zapnuty.');
         }
       }}
-      className={enabled ? '' : 'opacity-40'}
+      className={enabled ? 'text-brand' : 'text-slate-400'}
     >
-      🔔
+      <IconBell className="h-5 w-5" />
     </button>
   );
 }

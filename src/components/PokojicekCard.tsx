@@ -5,6 +5,7 @@ import { useAuth } from '@/lib/auth';
 import { reviewChoreDay, suggestClean, useChoreDays } from '@/lib/data';
 import { addDays, formatDateCs, pragueToday } from '@/lib/time';
 import type { ChoreDay, Kid } from '@/lib/types';
+import { IconSparkles } from '@/components/icons';
 
 /**
  * Daily room-cleanliness game on the Dnes page, one row per kid with the
@@ -25,7 +26,9 @@ export function PokojicekCard({ kids }: { kids: Kid[] }) {
 
   return (
     <section className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-900/5">
-      <h2 className="font-bold">🧹 Pokojíček</h2>
+      <h2 className="flex items-center gap-2 font-bold">
+        <IconSparkles className="h-5 w-5 text-amber-500" /> Pokojíček
+      </h2>
       <div className="mt-2 space-y-3">
         {gameKids.map((kid) => {
           const isSelf = member.kidId === kid.id;

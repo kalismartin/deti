@@ -13,6 +13,7 @@ import {
   usePocket,
 } from '@/lib/data';
 import { formatDateCs } from '@/lib/time';
+import { IconBank } from '@/components/icons';
 import {
   pocketBalance,
   type ChoreDay,
@@ -42,7 +43,9 @@ export default function BankaPage() {
 
   return (
     <div className="space-y-4">
-      <h2 className="text-lg font-bold">🏦 Banka</h2>
+      <h2 className="flex items-center gap-2 text-lg font-bold">
+        <IconBank className="h-5 w-5 text-brand" /> Banka
+      </h2>
       {kids.map((kid) => (
         <KidAccount
           key={kid.id}
